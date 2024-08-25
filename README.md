@@ -12,12 +12,16 @@ player statistics table for haxball lirs
   - loads first 100 players, dynamically extends table as you scroll down
   - statistics taken straight from lirs discord
   - fast and responsive
+![Table](./screenshots/table.png)
 
 ### Search Bar
   - find a specific player's stats
   - search and compare multiple players at once
     - add a comma between each username
   - find players with a similar username
-  - very loose and broad search for ease of use
+  - strict search feature to decrease clutter in table
+    - add quotes around the username
+    - the search is case-insensitive
+![Search Bar](./screenshots/search.png)
 
 `discord: i_9029`
