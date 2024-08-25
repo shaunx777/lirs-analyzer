@@ -1,7 +1,10 @@
 # lirs-analyzer
 player statistics table for haxball lirs
-[https://shaunx777.github.io/lirs-analyzer/](https://shaunx777.github.io/lirs-analyzer/) 😊
+
+[https://shaunx777.github.io/lirs-analyzer/](https://shaunx777.github.io/lirs-analyzer/)
+
 `note: this data has been manually fetched [25/08/2024] and currently isn't automatically updated`
+
 ## Features
 
 ### Table
