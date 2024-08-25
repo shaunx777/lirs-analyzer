@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Stats Table</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Player Stats</h1>
+
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Search for players...">
+    </div>
+
+    <table id="playerTable">
+        <thead>
+            <tr>
+                <th data-sort="username">Username</th>
+                <th data-sort="games.total">Total Games</th>
+                <th class="pad" data-sort="games.wins">Wins</th>
+                <th class="pad" data-sort="games.losses">Losses</th>
+                <th class="pad" data-sort="games.draws">Draws</th>
+                <th data-sort="games.red">Games as Red</th>
+                <th data-sort="games.blue">Games as&nbsp;Blue</th>
+                <th data-sort="performance.playtimeMinutes">Playtime (min)</th>
+                <th data-sort="performance.winRate">Win Rate</th>
+                <th data-sort="performance.goalsPerGame">Goals per Game</th>
+                <th data-sort="performance.assistsPerGame">Assists per Game</th>
+                <th data-sort="performance.csPerGame">CS per Game</th>
+                <th data-sort="performance.ogPerGame">OG per Game</th>
+                <th data-sort="total.goals">Total Goals</th>
+                <th data-sort="total.assists">Total Assists</th>
+                <th data-sort="total.cs">Total CS</th>
+                <th data-sort="total.og">Total OG</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Player rows here -->
+        </tbody>
+    </table>
+
+    <script>
+        let playerData = [];
+        let sortOrder = {};
+        let newPlayerData = []
+        let currentChunk = 0;
+        const CHUNK_SIZE = 100;
+
+        async function fetchPlayerData() {
+            try {
+                const response = await fetch('src/statistics.json?' + new Date());
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                let data = await response.json();
+                return data.players;
+            } catch (error) {
+                console.error('There has been a problem with the fetch operation:', error);
+                return [];
+            }
+        }
+
+        function createTableRow(player) {
+            const [username, stats, index] = player;
+            return `
+                <tr>
+                    <td>${index}, ${username}</td>
+                    <td>${stats.games.total}</td>
+                    <td>${stats.games.wins}</td>
+                    <td>${stats.games.losses}</td>
+                    <td>${stats.games.draws}</td>
+                    <td>${stats.games.red}</td>
+                    <td>${stats.games.blue}</td>
+                    <td>${stats.performance.playtimeMinutes}</td>
+                    <td>${stats.performance.winRate}%</td>
+                    <td>${stats.performance.goalsPerGame}</td>
+                    <td>${stats.performance.assistsPerGame}</td>
+                    <td>${stats.performance.csPerGame}</td>
+                    <td>${stats.performance.ogPerGame}</td>
+                    <td>${stats.total.goals}</td>
+                    <td>${stats.total.assists}</td>
+                    <td>${stats.total.cs}</td>
+                    <td>${stats.total.og}</td>
+                </tr>
+            `;
+        }
+
+        function renderTableChunk(playerData, chunkIndex) {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = start + CHUNK_SIZE;
+            const chunkData = playerData.slice(start, end);
+
+            const tableBody = document.querySelector('#playerTable tbody');
+            tableBody.insertAdjacentHTML('beforeend', chunkData.map(createTableRow).join(''));
+        }
+
+        function sortTable(key) {
+            const sortDir = sortOrder[key] === 'desc' ? 'asc' : 'desc';
+            sortOrder = { [key]: sortDir };
+        
+            playerData.sort((a, b) => {
+                const aValue = extractValue(a, key);
+                const bValue = extractValue(b, key);
+
+                if (typeof aValue === 'string') {
+                    return sortDir === 'asc' ? aValue.toLowerCase() < bValue.toLowerCase() : aValue.toLowerCase() > bValue.toLowerCase();
+                } else {
+                    return sortDir === 'asc' ? aValue - bValue : bValue - aValue;
+                }
+            });
+
+            playerData.forEach((player, index) => {
+                player[2] = index + 1
+            });
+
+            currentChunk = 0;
+            document.querySelector('#playerTable tbody').innerHTML = '';
+            newPlayerData = playerData.slice();
+
+      			const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      			if (searchTerm) {
+                filterTable(newPlayerData)
+            }
+            else {
+                renderTableChunk(newPlayerData, currentChunk);
+            }
+      
+            document.querySelectorAll('th').forEach(th => th.classList.remove('sorted-asc', 'sorted-desc'));
+            document.querySelector(`th[data-sort="${key}"]`).classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+
+
+        function extractValue(obj, path) {
+            if (path === "username") {
+                return obj[0];
+            }
+            return path.split('.').reduce((acc, part) => acc && acc[part], obj[1]);
+        }
+
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const searchTerms = searchTerm.split(',').map(term => term.trim());
+
+            playerData.forEach((player, index) => {
+                player[2] = index + 1;
+            });
+
+            const filteredData = playerData.filter(([username]) => {
+                return searchTerms.some(term => {
+          					if (/^"[^"]*"$/.test(term) || /^'[^']*'$/.test(term)) {
+          						  return username.toLowerCase() == term.slice(1, -1);;
+          					} else {
+          						  return username.toLowerCase().includes(term);
+          					}
+          			});
+            });
+
+            currentChunk = 0;
+            document.querySelector('#playerTable tbody').innerHTML = '';
+            newPlayerData = filteredData.slice();
+            renderTableChunk(newPlayerData, currentChunk);
+        }
+
+        function loadMorePlayers() {
+            currentChunk++;
+            renderTableChunk(newPlayerData, currentChunk);
+        }
+
+        function handleScroll() {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 5) {
+                loadMorePlayers();
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', filterTable);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            playerData = await fetchPlayerData();
+            playerData.forEach((player, index) => {
+                player[2] = index + 1
+            });
+            newPlayerData = playerData.slice();
+            renderTableChunk(newPlayerData, currentChunk);
+
+            document.querySelectorAll('th').forEach(th => {
+                th.addEventListener('click', () => {
+                    const key = th.getAttribute('data-sort');
+                    if (key) sortTable(key);
+                });
+            });
+
+            window.addEventListener('scroll', handleScroll);
+        });
+    </script>
+</body>
+</html>
