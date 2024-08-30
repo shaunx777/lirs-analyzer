@@ -259,12 +259,6 @@
 
             playerData = await fetchPlayerData();
             sortTable("games.total")
-            playerData.forEach((player, index) => {
-				player[0] = sanitizeHTMLString(player[0])
-                player[2] = index + 1
-            });
-            newPlayerData = playerData.slice();
-            renderTableChunk(newPlayerData, currentChunk);
             
             document.getElementById('searchInput').addEventListener('input', filterTable);
 
