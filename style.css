@@ -146,11 +146,11 @@ a:hover {
     font-family: 'Lato', sans-serif;
 }
 
-#splashContent p2 {
+#splashContent p {
     font-size: 0.9rem;
     position: absolute;
     right: 50%;
-    bottom: 2%;
+    bottom: 0%;
     white-space: nowrap;
     transform: translateX(50%);
 }
@@ -329,7 +329,7 @@ tr:hover {
         font-size: 1.5rem;
     }
 
-    #splashContent p2 {
+    #splashContent p {
         font-size: 0.8rem
     }
 
