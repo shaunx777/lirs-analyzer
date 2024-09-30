@@ -81,12 +81,16 @@ a:hover {
     animation: enlargediv cubic-bezier(1,0,1,1) 0.5s 1 forwards, outlineFade ease-in-out 0.5s 1 forwards;
 }
 
+.splashAnim, .splashAnimFast {
+    will-change: transform;
+}
+
 .splashContentAnim {
-    animation: fadeIn 0.5s 1.5s ease-in-out forwards; /* Apply the fade-in animation */
+    animation: fadeIn 0.5s 1.5s ease-in-out forwards;
 }
 
 .splashContentAnimFast {
-    animation: fadeIn 0.5s 0.5s ease-in-out forwards; /* Apply the fade-in animation */
+    animation: fadeIn 0.5s 0.5s ease-in-out forwards;
 }
 
 #splashScreen {
@@ -127,38 +131,41 @@ a:hover {
     text-shadow: 0 0 15px rgba(255, 235, 59, 0.7);
     opacity: 0.8;
     transition: opacity 0.5s ease;
-    top: 55px;
-    right: 23%;
-}
-
-#splashContent h2:hover {
-    opacity: 1;
+    white-space: nowrap;
+    top: 10%;
+    right: 50%;
+    transform: translateX(50%);
 }
 
 #splashContent li {
     font-size: 1.1rem;
-    margin-left: 40px;
-    margin-right: 60px;
+    margin-left: 2rem;
+    margin-right: 2rem;
     text-align: left;
-    margin-bottom: 25px;
+    margin-bottom: 1.4rem;
     font-family: 'Lato', sans-serif;
 }
 
 #splashContent p2 {
     font-size: 0.9rem;
     position: absolute;
-    top: 660px;
-    right: 21%;
+    right: 50%;
+    bottom: 2%;
+    white-space: nowrap;
+    transform: translateX(50%);
+}
+
+.material-icons {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.5s ease;
 }
 
 .close {
     font-size: 35px;
-    cursor: pointer;
     position: absolute;
     right: 20px;
     top: 20px;
-    opacity: 0.6;
-    transition: opacity 0.5s ease;
 }
 
 .info {
@@ -168,7 +175,22 @@ a:hover {
     transition: opacity 0.5s ease;
 }
 
-.close:hover, .info:hover {
+.info:hover {
+    opacity: 0.9;
+}
+
+#splashArrows {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 1.5%;
+    display: flex;
+    gap: 20rem; /* spacing between arrows */
+    align-items: center;
+    white-space: nowrap;
+}
+
+.material-icons:hover{
     opacity: 0.9;
 }
 
@@ -256,7 +278,7 @@ th:hover {
 }
 th.pad.sorted-asc,
 th.pad.sorted-desc {
-    padding-right: 25px; /* Add more right padding to accommodate the arrow */
+    padding-right: 25px; /* Padding for arrow */
 }
 th.sorted-asc::after,
 th.sorted-desc::after {
@@ -284,4 +306,47 @@ tr:nth-child(even) {
 tr:hover {
     background-color: rgba(58, 58, 58, 0.3);
     transition: background-color 0.3s ease;
+}
+
+#tableContainer {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-wrapper {
+    min-width: 1000px;
+}
+
+@media screen and (max-width: 768px) {
+    #tableContainer {
+        -webkit-overflow-scrolling: touch;
+    }
+    #splashScreen {
+        max-width: 95%;
+    }
+
+    #splashContent h2 {
+        font-size: 1.5rem;
+    }
+
+    #splashContent p2 {
+        font-size: 0.8rem
+    }
+
+    #splashContent li {
+        font-size: 1rem;
+        margin-left: 1rem;
+    }
+
+    #splashArrows {
+        gap: 17rem
+    }
+
+    table {
+        width: 100%;
+    }
+
+    th, td {
+        white-space: nowrap;
+    }
 }
