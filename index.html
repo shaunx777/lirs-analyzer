@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Stats Table</title>
+    <title>LIRS Stats Table</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="style.css">
@@ -16,19 +16,19 @@
             <div id="splashClose">
                 <i class="material-icons close">close</i>
             </div>
-            <h2 class="underline-extended">lirs-analyzer version 0.2</h2>
-            <ul>
-                <li>updated stats [30/08/24]</li>
-                <li>added update splash screen and button</li>
-                <li>changed the table to be sorted by games played by default</li>
-                <li>if the game lasted less than 20 seconds, or you played for less than 20 seconds, it is not counted</li>
-                <li>fixed some player usernames not showing</li>
+            <h2 class="underline-extended">lirs-analyzer version</h2>
+            <ul id="log">
+                <!-- dynamic changelog -->
             </ul>
             <p2>this project is mantained and hosted on <a href="https://github.com/shaunx777/lirs-analyzer">Github</a></p2>
+            <div id="splashArrows">
+                <i class="material-icons arrow arrow_back_ios">arrow_back_ios</i>
+                <i class="material-icons arrow arrow_forward_ios">arrow_forward_ios</i>
+            </div>
         </div>
     </div>
     
-    <h1>Player Stats</h1>
+    <h1>LIRS Player Stats</h1>
 
     <div id="searchContainer">
         <input type="text" id="searchInput" placeholder="Search for players...">
@@ -39,32 +39,36 @@
 
     <div id="blurOverlay"></div>
 
-    <table id="playerTable">
-        <thead>
-            <tr>
-                <th data-sort="username">Username</th>
-                <th data-sort="games.total">Total Games</th>
-                <th class="pad" data-sort="games.wins">Wins</th>
-                <th class="pad" data-sort="games.losses">Losses</th>
-                <th class="pad" data-sort="games.draws">Draws</th>
-                <th data-sort="games.red">Games as Red</th>
-                <th data-sort="games.blue">Games as&nbsp;Blue</th>
-                <th data-sort="performance.playtimeMinutes">Playtime (min)</th>
-                <th data-sort="performance.winRate">Win Rate</th>
-                <th data-sort="performance.goalsPerGame">Goals per Game</th>
-                <th data-sort="performance.assistsPerGame">Assists per Game</th>
-                <th data-sort="performance.csPerGame">CS per Game</th>
-                <th data-sort="performance.ogPerGame">OG per Game</th>
-                <th data-sort="total.goals">Total Goals</th>
-                <th data-sort="total.assists">Total Assists</th>
-                <th data-sort="total.cs">Total CS</th>
-                <th data-sort="total.og">Total OG</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Player rows here -->
-        </tbody>
-    </table>
+    <div id="tableContainer">
+        <div class="table-wrapper">
+            <table id="playerTable">
+                <thead>
+                    <tr>
+                        <th data-sort="username">Username</th>
+                        <th data-sort="games.total">Total Games</th>
+                        <th class="pad" data-sort="games.wins">Wins</th>
+                        <th class="pad" data-sort="games.losses">Losses</th>
+                        <th class="pad" data-sort="games.draws">Draws</th>
+                        <th data-sort="games.red">Games as Red</th>
+                        <th data-sort="games.blue">Games as&nbsp;Blue</th>
+                        <th data-sort="performance.playtimeMinutes">Playtime (min)</th>
+                        <th data-sort="performance.winRate">Win Rate</th>
+                        <th data-sort="performance.goalsPerGame">Goals per Game</th>
+                        <th data-sort="performance.assistsPerGame">Assists per Game</th>
+                        <th data-sort="performance.csPerGame">CS per Game</th>
+                        <th data-sort="performance.ogPerGame">OG per Game</th>
+                        <th data-sort="total.goals">Total Goals</th>
+                        <th data-sort="total.assists">Total Assists</th>
+                        <th data-sort="total.cs">Total CS</th>
+                        <th data-sort="total.og">Total OG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Player rows here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
         let playerData = [];
@@ -73,7 +77,14 @@
         let currentChunk = 0;
         const CHUNK_SIZE = 100;
 
-        const VERSION = 0.2
+        const LOG = 
+            [
+                'updated stats [30/08/24]\nadded update splash screen and button\nchanged the table to be sorted by games played by default\nif the game lasted less than 20 seconds, or you played for less than 20 seconds,it is not counted\nfixed some player usernames not showing',
+                'updated stats [30/09/24]\nlargely fixed the layout of the splash screen\nadded version history, view it by pressing the arrows near the bottom\ngreatly optimized size for mobile, table can be scrolled horizontally and the splash screen will fit to mobile devices\nchanged the way usernames are sorted'
+            ]
+
+        const VERSION = 0.3
+        let currentVer = VERSION
 
         async function fetchPlayerData() {
             try {
@@ -113,6 +124,44 @@
                 </tr>
             `;
         }
+        function alphanumericSort(a, b) {
+            const regex = /(\d+)|([a-zA-Z]+)|([^a-zA-Z0-9]+)/g; // Separate numbers, letters, and special characters
+            const aMatches = a.match(regex);
+            const bMatches = b.match(regex);
+
+            for (let i = 0; i < Math.min(aMatches.length, bMatches.length); i++) {
+                const aSegment = aMatches[i];
+                const bSegment = bMatches[i];
+
+                if (!isNaN(aSegment) && !isNaN(bSegment)) {
+                    const diff = parseInt(aSegment) - parseInt(bSegment);
+                    if (diff !== 0) return diff;
+                }
+                else if (isAlphanumeric(aSegment) && isAlphanumeric(bSegment)) {
+                    if (aSegment !== bSegment) {
+                        return aSegment < bSegment ? -1 : 1;
+                    }
+                }
+                else if (isAlphanumeric(aSegment) && !isAlphanumeric(bSegment)) {
+                    return -1;
+                } else if (!isAlphanumeric(aSegment) && isAlphanumeric(bSegment)) {
+                    return 1;
+                }
+                else {
+                    if (aSegment !== bSegment) {
+                        return aSegment < bSegment ? -1 : 1;
+                    }
+                }
+            }
+
+            // If all segments are equal, sort by the length
+            return aMatches.length - bMatches.length;
+        }
+
+        function isAlphanumeric(str) {
+            return /^[a-zA-Z0-9]+$/.test(str);
+        }
+
 
         function renderTableChunk(playerData, chunkIndex) {
             const start = chunkIndex * CHUNK_SIZE;
@@ -131,8 +180,10 @@
                 const aValue = extractValue(a, key);
                 const bValue = extractValue(b, key);
 
-                if (typeof aValue === 'string') {
-                    return sortDir === 'asc' ? aValue.toLowerCase() < bValue.toLowerCase() : aValue.toLowerCase() > bValue.toLowerCase();
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortDir === 'asc'
+                        ? alphanumericSort(aValue.toLowerCase(), bValue.toLowerCase())
+                        : alphanumericSort(bValue.toLowerCase(), aValue.toLowerCase());
                 } else {
                     return sortDir === 'asc' ? aValue - bValue : bValue - aValue;
                 }
@@ -214,6 +265,59 @@
         const splashScreen = document.getElementById("splashScreen")
         const blurOverlay = document.getElementById("blurOverlay")
         const splashContent = document.getElementById("splashContent")
+
+        function changeVersion(idk) {
+            const safeVersion = currentVer.toString().substring(2) // prevent js decimal math
+            currentVer = "0."
+            if (idk > 0) {
+                currentVer += parseInt(safeVersion) + 1
+            }
+            else {
+                currentVer += parseInt(safeVersion) - 1
+            }
+            return parseFloat(currentVer)
+        }
+
+        function changeTheLog(event) {
+            if (event.target.classList.contains("arrow_back_ios")) {
+                renderLog(changeVersion(-1))
+            } else if (event.target.classList.contains("arrow_forward_ios")) {
+                renderLog(changeVersion(1))
+            }
+        }
+
+        function renderLog(version) {
+            // creates an integer from version for getting log
+            let currentVersion = version.toString().substring(2) - 2
+            
+            const title = document.getElementsByClassName('underline-extended')[0]
+            title.textContent = "lirs-analyzer version " + version
+            const ul = document.getElementById('log')
+            ul.innerHTML = ''
+            let changelog = LOG[currentVersion].split('\n')
+            changelog.forEach(log => {
+                let li = document.createElement('li')
+                li.textContent = log
+                ul.appendChild(li)
+            })
+            const backArrow = document.getElementsByClassName("arrow")[0]
+            const forwardArrow = document.getElementsByClassName("arrow")[1]
+            if (currentVersion >= LOG.length -1) {
+                forwardArrow.style.visibility = 'hidden'
+            }
+            else if (currentVersion < LOG.length -1) {
+                forwardArrow.style.visibility = 'visible'
+            }
+
+            if (currentVersion > 0) {
+                backArrow.style.visibility = 'visible'
+            }
+            else if (currentVersion <= 0) {
+                backArrow.style.visibility = 'hidden'
+            }
+        }
+
+        renderLog(VERSION)
     
         function renderSplash() {
             document.body.style.overflow = "hidden"
@@ -227,7 +331,7 @@
         }
 
         function closeSplash() {
-            window.localStorage.setItem("version", "0.2")
+            window.localStorage.setItem("version", VERSION)
             document.body.style.overflow = "visible"
             splashScreen.style.visibility = "hidden"
             splashScreen.classList.remove("splashAnim")
@@ -259,11 +363,14 @@
 
             playerData = await fetchPlayerData();
             sortTable("games.total")
+
             
             document.getElementById('searchInput').addEventListener('input', filterTable);
 
             document.getElementsByClassName("info")[0].addEventListener("click", renderSplash) 
             document.getElementsByClassName("close")[0].addEventListener("click", closeSplash) 
+            document.getElementsByClassName("arrow")[0].addEventListener("click", changeTheLog)
+            document.getElementsByClassName("arrow")[1].addEventListener("click", changeTheLog) 
 
             document.querySelectorAll('th').forEach(th => {
                 th.addEventListener('click', () => {
